@@ -19,7 +19,7 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-  flet: ^0.84.0
+  flet: any
   serious_python: 0.9.11
 
   package_info_plus: ^9.0.0
