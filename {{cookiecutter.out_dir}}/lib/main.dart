@@ -16,36 +16,47 @@ import 'package:native_splash_screen/native_splash_screen.dart' as nss;
 
 import "python.dart";
 
-
+{% for dep in cookiecutter.flutter.dependencies %}
+import 'package:{{ dep }}/{{ dep }}.dart' as {{ dep }};
+{% endfor %}
 
 /*
+{% set show_boot_screen = get_pyproject("tool.flet." ~ cookiecutter.options.config_platform ~ ".app.boot_screen.show")
+                        or get_pyproject("tool.flet.app.boot_screen.show")
+                        or False %}
+{% set boot_screen_message = get_pyproject("tool.flet." ~ cookiecutter.options.config_platform ~ ".app.boot_screen.message")
+                        or get_pyproject("tool.flet.app.boot_screen.message") %}
 
+{% set show_startup_screen = get_pyproject("tool.flet." ~ cookiecutter.options.config_platform ~ ".app.startup_screen.show")
+                        or get_pyproject("tool.flet.app.startup_screen.show")
+                        or False %}
+{% set startup_screen_message = get_pyproject("tool.flet." ~ cookiecutter.options.config_platform ~ ".app.startup_screen.message")
+                        or get_pyproject("tool.flet.app.startup_screen.message") %}
 
+{% set hide_window_on_start = get_pyproject("tool.flet." ~ cookiecutter.options.config_platform ~ ".app.hide_window_on_start")
+                        or get_pyproject("tool.flet.app.hide_window_on_start") %}
 
-
-
-
-
-
-show_boot_screen: False
-boot_screen_message: None
-show_startup_screen: False
-startup_screen_message: None
-hide_window_on_start: None
+show_boot_screen: {{ show_boot_screen }}
+boot_screen_message: {{ boot_screen_message }}
+show_startup_screen: {{ show_startup_screen }}
+startup_screen_message: {{ startup_screen_message }}
+hide_window_on_start: {{ hide_window_on_start }}
 */
 
 const bool isRelease = bool.fromEnvironment('dart.vm.product');
 
 const assetPath = "app/app.zip";
-const pythonModuleName = "main";
-final showAppBootScreen = bool.tryParse("False".toLowerCase()) ?? false;
-const appBootScreenMessage = 'Preparing the app for its first launch…';
-final showAppStartupScreen = bool.tryParse("False".toLowerCase()) ?? false;
-const appStartupScreenMessage = 'Getting things ready…';
-final hideWindowOnStart = bool.tryParse("None".toLowerCase()) ?? false;
+const pythonModuleName = "{{ cookiecutter.python_module_name }}";
+final showAppBootScreen = bool.tryParse("{{ show_boot_screen }}".toLowerCase()) ?? false;
+const appBootScreenMessage = '{{ boot_screen_message | default("Preparing the app for its first launch…", true) }}';
+final showAppStartupScreen = bool.tryParse("{{ show_startup_screen }}".toLowerCase()) ?? false;
+const appStartupScreenMessage = '{{ startup_screen_message | default("Getting things ready…", true) }}';
+final hideWindowOnStart = bool.tryParse("{{ hide_window_on_start }}".toLowerCase()) ?? false;
 
 List<FletExtension> extensions = [
-
+{% for dep in cookiecutter.flutter.dependencies %}
+{{ dep }}.Extension(),
+{% endfor %}
 ];
 
 String outLogFilename = "";
@@ -56,6 +67,16 @@ String pageUrl = "";
 String assetsDir = "";
 String appDir = "";
 Map<String, String> environmentVariables = {};
+
+class _SplashScreenCloser extends WindowListener {
+  @override
+  void onWindowEvent(String eventName) {
+    if (eventName == 'show') {
+      nss.close(animation: nss.CloseAnimation.fade);
+      windowManager.removeListener(this);
+    }
+  }
+}
 
 void main(List<String> args) async {
 
@@ -71,14 +92,11 @@ void main(List<String> args) async {
   for (var ext in extensions) {
     ext.ensureInitialized();
   }
-
+  windowManager.addListener(_SplashScreenCloser());
   runApp(FutureBuilder(
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
-          Future.delayed(const Duration(seconds: 1), () {
-            nss.close(animation: nss.CloseAnimation.fade);
-          });
           // OK - start Python program
           return kIsWeb || (isDesktopPlatform() && _args.isNotEmpty)
               ? FletApp(
