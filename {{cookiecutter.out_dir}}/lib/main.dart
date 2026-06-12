@@ -1,3 +1,6 @@
+// Modified from the original Flet build template
+// - Splash screen closes on window 'show' event
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';

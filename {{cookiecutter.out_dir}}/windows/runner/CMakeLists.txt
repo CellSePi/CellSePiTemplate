@@ -1,3 +1,6 @@
+# Modified from the original Flet build template
+# - Added include of native_splash_screen.cmake for native splash screen support
+
 cmake_minimum_required(VERSION 3.14)
 project(runner LANGUAGES CXX)
 

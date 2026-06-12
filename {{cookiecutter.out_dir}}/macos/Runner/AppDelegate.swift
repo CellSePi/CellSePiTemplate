@@ -1,3 +1,6 @@
+// Modified from the original Flet build template
+// - Added native_splash_screen initialization on launch
+
 import Cocoa
 import FlutterMacOS
 import native_splash_screen_macos

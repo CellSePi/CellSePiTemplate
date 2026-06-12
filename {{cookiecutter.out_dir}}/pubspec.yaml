@@ -1,3 +1,7 @@
+# Modified from the original Flet build template
+# - Added native_splash_screen dependency
+# - Pinned explicit flet version
+
 name: '{{ cookiecutter.project_name }}'
 description: '{{ cookiecutter.project_description }}'
 publish_to: 'none'

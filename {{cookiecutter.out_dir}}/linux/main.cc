@@ -1,3 +1,5 @@
+// Modified from the original Flet build template
+// - Added native_splash_screen initialization on launch
 #include <native_splash_screen_linux/native_splash_screen_linux_plugin.h>
 #include "my_application.h"
 
