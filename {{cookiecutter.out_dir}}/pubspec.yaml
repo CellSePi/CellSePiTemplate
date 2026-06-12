@@ -19,7 +19,8 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-  flet: any
+  flet:
+    path: ../../../../../packages/flet
   serious_python: 0.9.11
 
   package_info_plus: ^9.0.0
@@ -35,6 +36,8 @@ dependencies:
 # {% endif %}
 
 dependency_overrides:
+  flet:
+    path: ../../../../../packages/flet
   device_info_plus: 12.3.0 # remove that in May, 2026 once CI moved to macOS 26
   connectivity_plus: 7.0.0 # remove that in May, 2026 once CI moved to macOS 26
 
