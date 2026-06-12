@@ -19,8 +19,8 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-  flet: ^0.84.0
-  serious_python: 0.9.11
+  flet: ^0.85.3
+  serious_python: 1.0.1
 
   package_info_plus: ^9.0.0
   path_provider: ^2.1.4
@@ -35,7 +35,7 @@ dependencies:
 # {% endif %}
 
 dependency_overrides:
-  flet: ^0.84.0
+  flet: ^0.85.3
   device_info_plus: 12.3.0 # remove that in May, 2026 once CI moved to macOS 26
   connectivity_plus: 7.0.0 # remove that in May, 2026 once CI moved to macOS 26
 
@@ -43,6 +43,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.1
   flutter_native_splash: ^2.4.1
   flutter_lints: ^2.0.0
+
   native_splash_screen_cli: ^3.0.0
 
 flutter:
