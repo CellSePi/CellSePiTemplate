@@ -79,6 +79,7 @@ class _SplashScreenCloser extends WindowListener {
 
   @override
   void onWindowEvent(String eventName) {
+    print(eventName);
     if (eventName == 'show') {
       _closeSplash();
     }
