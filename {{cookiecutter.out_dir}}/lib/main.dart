@@ -72,20 +72,16 @@ String appDir = "";
 Map<String, String> environmentVariables = Map.from(Platform.environment);
 
 class _SplashScreenCloser extends WindowListener {
+  bool _closed = false;
   @override
-  void onWindowShow() {
-    _closeSplash();
-  }
+  void onWindowShow() => _closeSplash();
 
   @override
-  void onWindowEvent(String eventName) {
-    print(eventName);
-    if (eventName == 'show') {
-      _closeSplash();
-    }
-  }
+  void onWindowFocus() => _closeSplash();
 
   void _closeSplash() {
+    if (_closed) return;
+    _closed = true;
     nss.close(animation: nss.CloseAnimation.fade);
     windowManager.removeListener(this);
   }
