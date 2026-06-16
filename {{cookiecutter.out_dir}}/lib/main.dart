@@ -73,11 +73,20 @@ Map<String, String> environmentVariables = Map.from(Platform.environment);
 
 class _SplashScreenCloser extends WindowListener {
   @override
+  void onWindowShow() {
+    _closeSplash();
+  }
+
+  @override
   void onWindowEvent(String eventName) {
     if (eventName == 'show') {
-      nss.close(animation: nss.CloseAnimation.fade);
-      windowManager.removeListener(this);
+      _closeSplash();
     }
+  }
+
+  void _closeSplash() {
+    nss.close(animation: nss.CloseAnimation.fade);
+    windowManager.removeListener(this);
   }
 }
 
