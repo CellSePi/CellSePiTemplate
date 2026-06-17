@@ -124,7 +124,28 @@ void main(List<String> args) async {
     var argvItems = args.map((a) => "\"${a.replaceAll('"', '\\"')}\"");
     var argvString = "[''] + [${argvItems.join(',')}]";
 
-    workerPayload = "import sys\nimport os\nsys.path.insert(0, os.getcwd())\nsys.argv = $argvString\n$rawPayload";
+    workerPayload = """
+import sys
+import os
+import traceback
+
+# Log-Datei auf dem Desktop erstellen
+home_dir = os.environ.get('USERPROFILE') or os.environ.get('HOME') or ''
+log_path = os.path.join(home_dir, 'Desktop', 'worker_python_error.txt')
+
+with open(log_path, 'a', encoding='utf-8') as f:
+    sys.stdout = f
+    sys.stderr = f
+    
+    sys.path.insert(0, os.getcwd())
+    sys.argv = $argvString
+    
+    try:
+        $rawPayload
+    except Exception as e:
+        f.write("\\nCRASH IM WORKER:\\n")
+        traceback.print_exc(file=f)
+""";
 
     writeLog("-> Injektiertes sys.argv: $argvString");
     writeLog("-> Übergebe Payload an SeriousPython...");
