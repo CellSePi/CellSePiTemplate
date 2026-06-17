@@ -73,43 +73,12 @@ String assetsDir = "";
 String appDir = "";
 Map<String, String> environmentVariables = Map.from(Platform.environment);
 
-class _SplashScreenCloser extends WindowListener {
-  @override
-  void onWindowShow() => _closeSplash();
-
-  @override
-  void onWindowFocus() {
-    if (defaultTargetPlatform == TargetPlatform.macOS) {
-      _closeSplash();
-    }
-  }
-
-  void _closeSplash() {
-    nss.close(animation: nss.CloseAnimation.fade);
-    windowManager.removeListener(this);
-  }
-}
-void writeLog(String text) {
-  try {
-    String homeDir = Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'] ?? '';
-
-    String logPath = path.join(homeDir, 'Desktop', 'flet_debug_log_$pid.txt');
-
-    File logFile = File(logPath);
-    logFile.writeAsStringSync('${DateTime.now().toLocal()}: $text\n', mode: FileMode.append);
-  } catch (e) {
-    debugPrint("Logging fehlgeschlagen: $e");
-  }
-}
 
 void main(List<String> args) async {
 
   FletDeepLinkingBootstrap.install();
 
   _args = List<String>.from(args);
-  writeLog("=====================================");
-  writeLog("APP GESTARTET");
-  writeLog("Originale Argumente: $args");
 
   int cIndex = _args.indexOf("-c");
   if (cIndex != -1 && cIndex < _args.length - 1) {
@@ -118,14 +87,10 @@ void main(List<String> args) async {
     if (rawPayload.contains("spawn_main") ||
       rawPayload.contains("resource_tracker") ||
       rawPayload.contains("multiprocessing")) {
-      writeLog("-> MULTIPROCESSING DETEKTIERT. Übergebe an System.");
-
       Process.start(Platform.resolvedExecutable, _args);
       exit(0);
     }
   }
-
-  writeLog("-> Starte normale Flet-App");
 
   var devPageUrl = const String.fromEnvironment("FLET_PAGE_URL");
   if (devPageUrl != "") {
@@ -135,11 +100,11 @@ void main(List<String> args) async {
   for (var ext in extensions) {
     ext.ensureInitialized();
   }
-  windowManager.addListener(_SplashScreenCloser());
   runApp(FutureBuilder(
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
+          nss.close(animation: nss.CloseAnimation.fade);
           // OK - start Python program
           return kIsWeb || (isDesktopPlatform() && _args.isNotEmpty)
               ? FletApp(
