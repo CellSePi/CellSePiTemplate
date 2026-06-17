@@ -118,36 +118,27 @@ void main(List<String> args) async {
 
   String? workerPayload;
   int cIndex = _args.indexOf("-c");
+   int cIndex = _args.indexOf("-c");
   if (cIndex != -1 && cIndex < _args.length - 1) {
-    writeLog("-> WORKER DETEKTIERT! Baue sauberen Payload...");
-
     String rawPayload = _args[cIndex + 1];
+    if (rawPayload.contains("spawn_main") ||
+        rawPayload.contains("resource_tracker") ||
+        rawPayload.contains("from multiprocessing")) {
 
-    writeLog("RAW PAYLOAD:");
-    writeLog(rawPayload);
-    workerPayload = """
-import sys
-import os
-import traceback
+      writeLog("-> Multiprocessing Worker erkannt - starte Python DIREKT");
 
-# Pfad zum Desktop oder Hauptordner
-desktop = os.environ.get('USERPROFILE') or os.environ.get('HOME') or ''
-log_file = os.path.join(desktop, 'Desktop', 'flet_worker_crash.log')
-if not os.path.exists(os.path.join(desktop, 'Desktop')):
-    log_file = os.path.join(desktop, 'flet_worker_crash.log')
+      await prepareApp();
 
-with open(log_file, "a", encoding="utf-8") as f:
-    f.write("--- NEUER WORKER START ---\\n")
-    sys.stdout = f
-    sys.stderr = f
-    
-    f.write("VOR EXEC\n")
-    exec('''$rawPayload''')
-    f.write("NACH EXEC\n")
- 
-""";
-    _args.clear();
+      await SeriousPython.runProgram(
+        path.join(appDir, "$pythonModuleName.pyc"),
+        script: rawPayload,
+        environmentVariables: environmentVariables,
+      );
+      exit(0);
+    }
   }
+
+  writeLog("-> Starte normale Flet-App");
 
   var devPageUrl = const String.fromEnvironment("FLET_PAGE_URL");
   if (devPageUrl != "") {
@@ -162,24 +153,6 @@ with open(log_file, "a", encoding="utf-8") as f:
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
-          //enable multiprocessing
-          if (workerPayload != null) {
-            writeLog("-> Führe Worker-Payload im Hintergrund aus...");
-            return FutureBuilder(
-              future: SeriousPython.runProgram(
-                path.join(appDir, "$pythonModuleName.pyc"),
-                script: workerPayload,
-                environmentVariables: environmentVariables,
-              ).then((_) {
-                writeLog("-> WORKER ERFOLGREICH BEENDET! Schließe Prozess.");
-                exit(0);
-              }).catchError((error) {
-                writeLog("-> WORKER CRASH: $error");
-                exit(1);
-              }),
-              builder: (context, _) => const BlankScreen(),
-            );
-          }
           // OK - start Python program
           return kIsWeb || (isDesktopPlatform() && _args.isNotEmpty)
               ? FletApp(
