@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:convert';
 
 import 'package:flet/flet.dart';
 import 'package:flutter/foundation.dart';
@@ -91,21 +92,38 @@ class _SplashScreenCloser extends WindowListener {
     windowManager.removeListener(this);
   }
 }
+void writeLog(String text) {
+  try {
+    String homeDir = Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'] ?? '';
+    String logPath = path.join(homeDir, 'Desktop', 'flet_debug_log.txt');
+    File logFile = File(logPath);
+    logFile.writeAsStringSync('${DateTime.now().toLocal()}: $text\n', mode: FileMode.append);
+  } catch (e) {
+    debugPrint("Logging fehlgeschlagen: $e");
+  }
+}
 
 void main(List<String> args) async {
 
   FletDeepLinkingBootstrap.install();
 
   _args = List<String>.from(args);
+  writeLog("=====================================");
+  writeLog("APP GESTARTET");
+  writeLog("Originale Argumente: $args");
 
   String? workerPayload;
   int cIndex = _args.indexOf("-c");
   if (cIndex != -1 && cIndex < _args.length - 1) {
+    writeLog("-> WORKER DETEKTIERT! (-c gefunden)");
     String rawPayload = _args[cIndex + 1];
     var argvItems = args.map((a) => "\"${a.replaceAll('"', '\\"')}\"");
     var argvString = "[''] + [${argvItems.join(',')}]";
 
     workerPayload = "import sys\nsys.argv = $argvString\n$rawPayload";
+
+    writeLog("-> Injektiertes sys.argv: $argvString");
+    writeLog("-> Übergebe Payload an SeriousPython...");
     _args.clear();
   }
 
@@ -122,14 +140,22 @@ void main(List<String> args) async {
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
+          writeLog("-> Führe Worker-Payload im Hintergrund aus...");
           //enable multiprocessing
           if (workerPayload != null) {
+            writeLog("-> Führe Worker-Payload im Hintergrund aus...");
             return FutureBuilder(
               future: SeriousPython.runProgram(
                 path.join(appDir, "$pythonModuleName.pyc"),
                 script: workerPayload,
                 environmentVariables: environmentVariables,
-              ).then((_) => exit(0)),
+              ).then((_) {
+                writeLog("-> WORKER ERFOLGREICH BEENDET! Schließe Prozess.");
+                exit(0);
+              }).catchError((error) {
+                writeLog("-> WORKER CRASH: $error");
+                exit(1);
+              }),
               builder: (context, _) => const BlankScreen(),
             );
           }
