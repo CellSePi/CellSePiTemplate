@@ -122,9 +122,9 @@ void main(List<String> args) async {
     writeLog("-> WORKER DETEKTIERT! Baue sauberen Payload...");
 
     String rawPayload = _args[cIndex + 1];
-    var argvItems = args.map((a) => "\"${a.replaceAll('"', '\\"')}\"");
-    var argvString = "[''] + [${argvItems.join(',')}]";
 
+    writeLog("RAW PAYLOAD:");
+    writeLog(rawPayload);
     workerPayload = """
 import sys
 import os
@@ -141,14 +141,10 @@ with open(log_file, "a", encoding="utf-8") as f:
     sys.stdout = f
     sys.stderr = f
     
-    try:
-        sys.path.insert(0, os.getcwd())
-        sys.argv = $argvString
-        exec('''$rawPayload''')
-        f.write("-> WORKER BEENDET OHNE ABSTURZ\\n")
-    except BaseException as e:  # BaseException fängt auch SystemExit ab!
-        f.write("-> WORKER ABGESTÜRZT:\\n")
-        traceback.print_exc(file=f)
+    f.write("VOR EXEC\n")
+    exec('''$rawPayload''')
+    f.write("NACH EXEC\n")
+ 
 """;
     _args.clear();
   }
