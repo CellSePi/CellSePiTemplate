@@ -98,27 +98,6 @@ void main(List<String> args) async {
 
   _args = List<String>.from(args);
 
-  // CELLSEPI MULTIPROCESSING BYPASS
-  int cIndex = _args.indexOf("-c");
-  if (cIndex != -1 && cIndex < _args.length - 1) {
-    debugPrint("Worker process detected! Bypassing Flet UI and Sockets...");
-
-    WidgetsFlutterBinding.ensureInitialized();
-    appDir = await extractAssetZip(assetPath, checkHash: true);
-    Directory.current = appDir;
-
-    String workerPayload = _args[cIndex + 1];
-
-    SeriousPython.runProgram(
-      path.join(appDir, "$pythonModuleName.pyc"),
-      script: workerPayload,
-      environmentVariables: Map.from(Platform.environment)
-    );
-
-    await Completer().future;
-    return;
-  }
-
   var devPageUrl = const String.fromEnvironment("FLET_PAGE_URL");
   if (devPageUrl != "") {
     _args.addAll([devPageUrl, "--debug"]);
@@ -132,6 +111,20 @@ void main(List<String> args) async {
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
+          //enable multiprocessing
+          int cIndex = _args.indexOf("-c");
+          if (cIndex != -1 && cIndex < _args.length - 1) {
+            String workerPayload = _args[cIndex + 1];
+            return FutureBuilder(
+              future: SeriousPython.runProgram(
+                path.join(appDir, "$pythonModuleName.pyc"),
+                script: workerPayload,
+                environmentVariables: environmentVariables,
+              ).then((_) => exit(0)),
+
+              builder: (context, _) => const BlankScreen(),
+            );
+          }
           // OK - start Python program
           return kIsWeb || (isDesktopPlatform() && _args.isNotEmpty)
               ? FletApp(
