@@ -84,8 +84,8 @@ class _SplashScreenCloser extends WindowListener {
   }
 
   @override
-  void onWindowShow() {
-    if (Platform.isWindows || Platform.isLinux) {
+  void onWindowEvent(String eventName) {
+    if (eventName == 'show') {
       _closeSplash();
     }
   }
@@ -124,8 +124,9 @@ void main(List<String> args) async {
   for (var ext in extensions) {
     ext.ensureInitialized();
   }
-  await windowManager.waitUntilReadyToShow();
+
   windowManager.addListener(_SplashScreenCloser());
+
   runApp(FutureBuilder(
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
