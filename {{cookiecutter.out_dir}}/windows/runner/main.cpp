@@ -1,17 +1,25 @@
 // Modified from the original Flet build template
 // - Added native_splash_screen initialization on launch
+// - Added multiprocessing interception to hide worker splash screen
 
 #include <native_splash_screen_windows/native_splash_screen_windows_plugin_c_api.h>
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
 #include <windows.h>
+#include <string>
 
 #include "flutter_window.h"
 #include "utils.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
-   ShowSplashScreen();
+   std::wstring cmd(command_line);
+   bool is_worker_process = (cmd.find(L"-c ") != std::wstring::npos ||
+                            cmd.find(L"multiprocessing") != std::wstring::npos);
+
+   if (!is_worker_process) {
+      ShowSplashScreen();
+  }
   // Attach to console when present (e.g., 'flutter run') or create a
   // new console when running with a debugger.
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {

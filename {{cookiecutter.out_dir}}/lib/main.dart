@@ -1,5 +1,6 @@
 // Modified from the original Flet build template
 // - Splash screen closes on window 'show' event
+// - MULTIPROCESSING BYPASS
 
 import 'dart:async';
 import 'dart:io';
@@ -96,6 +97,27 @@ void main(List<String> args) async {
   FletDeepLinkingBootstrap.install();
 
   _args = List<String>.from(args);
+
+  // CELLSEPI MULTIPROCESSING BYPASS
+  int cIndex = _args.indexOf("-c");
+  if (cIndex != -1 && cIndex < _args.length - 1) {
+    debugPrint("Worker process detected! Bypassing Flet UI and Sockets...");
+
+    WidgetsFlutterBinding.ensureInitialized();
+    appDir = await extractAssetZip(assetPath, checkHash: true);
+    Directory.current = appDir;
+
+    String workerPayload = _args[cIndex + 1];
+
+    SeriousPython.runProgram(
+      path.join(appDir, "$pythonModuleName.pyc"),
+      script: workerPayload,
+      environmentVariables: Map.from(Platform.environment)
+    );
+
+    await Completer().future;
+    return;
+  }
 
   var devPageUrl = const String.fromEnvironment("FLET_PAGE_URL");
   if (devPageUrl != "") {
