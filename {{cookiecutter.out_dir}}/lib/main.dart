@@ -98,6 +98,17 @@ void main(List<String> args) async {
 
   _args = List<String>.from(args);
 
+  String? workerPayload;
+  int cIndex = _args.indexOf("-c");
+  if (cIndex != -1 && cIndex < _args.length - 1) {
+    String rawPayload = _args[cIndex + 1];
+    var argvItems = args.map((a) => "\"${a.replaceAll('"', '\\"')}\"");
+    var argvString = "[''] + [${argvItems.join(',')}]";
+
+    workerPayload = "import sys\nsys.argv = $argvString\n$rawPayload";
+    _args.clear();
+  }
+
   var devPageUrl = const String.fromEnvironment("FLET_PAGE_URL");
   if (devPageUrl != "") {
     _args.addAll([devPageUrl, "--debug"]);
@@ -112,16 +123,13 @@ void main(List<String> args) async {
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
           //enable multiprocessing
-          int cIndex = _args.indexOf("-c");
-          if (cIndex != -1 && cIndex < _args.length - 1) {
-            String workerPayload = _args[cIndex + 1];
+          if (workerPayload != null) {
             return FutureBuilder(
               future: SeriousPython.runProgram(
                 path.join(appDir, "$pythonModuleName.pyc"),
                 script: workerPayload,
                 environmentVariables: environmentVariables,
               ).then((_) => exit(0)),
-
               builder: (context, _) => const BlankScreen(),
             );
           }
