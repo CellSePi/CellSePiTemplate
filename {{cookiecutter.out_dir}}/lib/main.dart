@@ -79,7 +79,7 @@ class _SplashScreenCloser extends WindowListener {
 
   @override
   void onWindowFocus() {
-    if (defaultTargetPlatform == TargetPlatform.macos) {
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
       _closeSplash();
     }
   }
