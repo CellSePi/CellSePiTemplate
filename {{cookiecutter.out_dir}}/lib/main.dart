@@ -124,7 +124,7 @@ void main(List<String> args) async {
     var argvItems = args.map((a) => "\"${a.replaceAll('"', '\\"')}\"");
     var argvString = "[''] + [${argvItems.join(',')}]";
 
-    workerPayload = "import sys\nsys.argv = $argvString\n$rawPayload";
+    workerPayload = "import sys\nimport os\nsys.path.insert(0, os.getcwd())\nsys.argv = $argvString\n$rawPayload";
 
     writeLog("-> Injektiertes sys.argv: $argvString");
     writeLog("-> Übergebe Payload an SeriousPython...");
