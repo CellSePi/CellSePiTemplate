@@ -118,7 +118,6 @@ void main(List<String> args) async {
 
   String? workerPayload;
   int cIndex = _args.indexOf("-c");
-   int cIndex = _args.indexOf("-c");
   if (cIndex != -1 && cIndex < _args.length - 1) {
     String rawPayload = _args[cIndex + 1];
     if (rawPayload.contains("spawn_main") ||
