@@ -73,6 +73,30 @@ String assetsDir = "";
 String appDir = "";
 Map<String, String> environmentVariables = Map.from(Platform.environment);
 
+class _SplashScreenCloser extends WindowListener {
+  bool _closed = false;
+
+  void _closeSplash() {
+    if (_closed) return;
+    _closed = true;
+    nss.close(animation: nss.CloseAnimation.fade);
+    windowManager.removeListener(this);
+  }
+
+  @override
+  void onWindowShow() {
+    if (Platform.isWindows || Platform.isLinux) {
+      _closeSplash();
+    }
+  }
+
+  @override
+  void onWindowFocus() {
+    if (Platform.isMacOS) {
+      _closeSplash();
+    }
+  }
+}
 
 void main(List<String> args) async {
 
@@ -100,6 +124,8 @@ void main(List<String> args) async {
   for (var ext in extensions) {
     ext.ensureInitialized();
   }
+  await windowManager.waitUntilReadyToShow();
+  windowManager.addListener(_SplashScreenCloser());
   runApp(FutureBuilder(
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
