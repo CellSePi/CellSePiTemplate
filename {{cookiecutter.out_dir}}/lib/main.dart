@@ -109,6 +109,8 @@ void main(List<String> args) async {
 
   FletDeepLinkingBootstrap.install();
 
+  environmentVariables["APP_EXECUTABLE_PATH"] = Platform.resolvedExecutable;
+
   _args = List<String>.from(args);
   writeLog("=====================================");
   writeLog("APP GESTARTET");
