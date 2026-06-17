@@ -95,12 +95,13 @@ class _SplashScreenCloser extends WindowListener {
 void writeLog(String text) {
   try {
     String homeDir = Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'] ?? '';
-    String logPath = path.join(homeDir, 'Desktop', 'flet_debug_log.txt');
+
+    String logPath = path.join(homeDir, 'Desktop', 'flet_debug_log_$pid.txt');
+
     File logFile = File(logPath);
     logFile.writeAsStringSync('${DateTime.now().toLocal()}: $text\n', mode: FileMode.append);
   } catch (e) {
     debugPrint("Logging fehlgeschlagen: $e");
-  }
 }
 
 void main(List<String> args) async {
