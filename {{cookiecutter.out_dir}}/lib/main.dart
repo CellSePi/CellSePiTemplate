@@ -119,7 +119,8 @@ void main(List<String> args) async {
   String? workerPayload;
   int cIndex = _args.indexOf("-c");
   if (cIndex != -1 && cIndex < _args.length - 1) {
-    writeLog("-> WORKER DETEKTIERT! (-c gefunden)");
+    writeLog("-> WORKER DETEKTIERT! Baue sauberen Payload...");
+
     String rawPayload = _args[cIndex + 1];
     var argvItems = args.map((a) => "\"${a.replaceAll('"', '\\"')}\"");
     var argvString = "[''] + [${argvItems.join(',')}]";
@@ -127,28 +128,13 @@ void main(List<String> args) async {
     workerPayload = """
 import sys
 import os
-import traceback
 
-# Log-Datei auf dem Desktop erstellen
-home_dir = os.environ.get('USERPROFILE') or os.environ.get('HOME') or ''
-log_path = os.path.join(home_dir, 'Desktop', 'worker_python_error.txt')
+sys.path.insert(0, os.getcwd())
 
-with open(log_path, 'a', encoding='utf-8') as f:
-    sys.stdout = f
-    sys.stderr = f
-    
-    sys.path.insert(0, os.getcwd())
-    sys.argv = $argvString
-    
-    try:
-        $rawPayload
-    except Exception as e:
-        f.write("\\nCRASH IM WORKER:\\n")
-        traceback.print_exc(file=f)
+sys.argv = $argvString
+
+exec('''$rawPayload''')
 """;
-
-    writeLog("-> Injektiertes sys.argv: $argvString");
-    writeLog("-> Übergebe Payload an SeriousPython...");
     _args.clear();
   }
 
@@ -165,7 +151,6 @@ with open(log_path, 'a', encoding='utf-8') as f:
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
-          writeLog("-> Führe Worker-Payload im Hintergrund aus...");
           //enable multiprocessing
           if (workerPayload != null) {
             writeLog("-> Führe Worker-Payload im Hintergrund aus...");
