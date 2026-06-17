@@ -128,12 +128,27 @@ void main(List<String> args) async {
     workerPayload = """
 import sys
 import os
+import traceback
 
-sys.path.insert(0, os.getcwd())
+# Pfad zum Desktop oder Hauptordner
+desktop = os.environ.get('USERPROFILE') or os.environ.get('HOME') or ''
+log_file = os.path.join(desktop, 'Desktop', 'flet_worker_crash.log')
+if not os.path.exists(os.path.join(desktop, 'Desktop')):
+    log_file = os.path.join(desktop, 'flet_worker_crash.log')
 
-sys.argv = $argvString
-
-exec('''$rawPayload''')
+with open(log_file, "a", encoding="utf-8") as f:
+    f.write("--- NEUER WORKER START ---\\n")
+    sys.stdout = f
+    sys.stderr = f
+    
+    try:
+        sys.path.insert(0, os.getcwd())
+        sys.argv = $argvString
+        exec('''$rawPayload''')
+        f.write("-> WORKER BEENDET OHNE ABSTURZ\\n")
+    except BaseException as e:  # BaseException fängt auch SystemExit ab!
+        f.write("-> WORKER ABGESTÜRZT:\\n")
+        traceback.print_exc(file=f)
 """;
     _args.clear();
   }
