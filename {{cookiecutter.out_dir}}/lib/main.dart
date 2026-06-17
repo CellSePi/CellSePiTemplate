@@ -120,20 +120,10 @@ void main(List<String> args) async {
   int cIndex = _args.indexOf("-c");
   if (cIndex != -1 && cIndex < _args.length - 1) {
     String rawPayload = _args[cIndex + 1];
-    if (rawPayload.contains("spawn_main") ||
-        rawPayload.contains("resource_tracker") ||
-        rawPayload.contains("from multiprocessing")) {
 
-      writeLog("-> Multiprocessing Worker erkannt - starte Python DIREKT");
-
-      await prepareApp();
-
-      await SeriousPython.runProgram(
-        path.join(appDir, "$pythonModuleName.pyc"),
-        script: rawPayload,
-        environmentVariables: environmentVariables,
-      );
-      exit(0);
+    if (rawPayload.contains("multiprocessing")) {
+      writeLog("-> Multiprocessing-Proxy erkannt");
+      return;
     }
   }
 
