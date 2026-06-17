@@ -74,7 +74,6 @@ String appDir = "";
 Map<String, String> environmentVariables = Map.from(Platform.environment);
 
 class _SplashScreenCloser extends WindowListener {
-  bool _closed = false;
   @override
   void onWindowShow() => _closeSplash();
 
@@ -86,8 +85,6 @@ class _SplashScreenCloser extends WindowListener {
   }
 
   void _closeSplash() {
-    if (_closed) return;
-    _closed = true;
     nss.close(animation: nss.CloseAnimation.fade);
     windowManager.removeListener(this);
   }
@@ -109,21 +106,22 @@ void main(List<String> args) async {
 
   FletDeepLinkingBootstrap.install();
 
-  environmentVariables["APP_EXECUTABLE_PATH"] = Platform.resolvedExecutable;
-
   _args = List<String>.from(args);
   writeLog("=====================================");
   writeLog("APP GESTARTET");
   writeLog("Originale Argumente: $args");
 
-  String? workerPayload;
   int cIndex = _args.indexOf("-c");
   if (cIndex != -1 && cIndex < _args.length - 1) {
     String rawPayload = _args[cIndex + 1];
 
-    if (rawPayload.contains("multiprocessing")) {
-      writeLog("-> Multiprocessing-Proxy erkannt");
-      return;
+    if (rawPayload.contains("spawn_main") ||
+      rawPayload.contains("resource_tracker") ||
+      rawPayload.contains("multiprocessing")) {
+      writeLog("-> MULTIPROCESSING DETEKTIERT. Übergebe an System.");
+
+      Process.start(Platform.resolvedExecutable, _args);
+      exit(0);
     }
   }
 
