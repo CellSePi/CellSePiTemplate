@@ -98,19 +98,6 @@ class _SplashScreenCloser extends WindowListener {
   }
 }
 
-void writeLog(String text) {
-  try {
-    String homeDir = Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'] ?? '';
-
-    String logPath = path.join(homeDir, 'Desktop', 'flet_debug_log_$pid.txt');
-
-    File logFile = File(logPath);
-    logFile.writeAsStringSync('${DateTime.now().toLocal()}: $text\n', mode: FileMode.append);
-  } catch (e) {
-    debugPrint("Logging fehlgeschlagen: $e");
-  }
-}
-
 void main(List<String> args) async {
 
   FletDeepLinkingBootstrap.install();
@@ -136,37 +123,26 @@ void main(List<String> args) async {
           int cIndex = _args.indexOf("-c");
           if (cIndex != -1 && cIndex < _args.length - 1) {
             String rawPayload = _args[cIndex + 1];
-
             if (rawPayload.contains("spawn_main") ||
                 rawPayload.contains("resource_tracker") ||
                 rawPayload.contains("multiprocessing")) {
-
-              if (Platform.environment.containsKey("FLET_IS_WORKER")) {
-                writeLog("-> Worker: Führe Payload direkt aus");
-                SeriousPython.runProgram(
+              return FutureBuilder(
+                future: SeriousPython.runProgram(
                   path.join(appDir, "$pythonModuleName.pyc"),
                   script: rawPayload,
                   environmentVariables: {
                     ...environmentVariables,
                     "FLET_HIDE_WINDOW_ON_START": "true",
                   },
-                );
-                exit(0);
-              } else {
-                writeLog("-> Hauptprozess: Starte Worker mit Flag");
-                Process.start(
-                  Platform.resolvedExecutable,
-                  _args,
-                  environment: {
-                    ...environmentVariables,
-                    "FLET_IS_WORKER": "1",
-                    "FLET_HIDE_WINDOW_ON_START": "true",
-                  },
-                );
-                exit(0);
-              }
+                  sync: true,
+                ).then((_) => exit(0)),
+                builder: (context, snap) => const MaterialApp(
+                  home: Scaffold(body: SizedBox.shrink()),
+                ),
+              );
             }
           }
+
           // OK - start Python program
           return kIsWeb || (isDesktopPlatform() && _args.isNotEmpty)
               ? FletApp(
