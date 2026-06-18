@@ -122,16 +122,37 @@ void main(List<String> args) async {
           // MULTIPROCESSING BYPASS
           int cIndex = _args.indexOf("-c");
           if (cIndex != -1 && cIndex < _args.length - 1) {
-            String workerPayload = _args[cIndex + 1];
-            SeriousPython.runProgram(
-              path.join(appDir, "$pythonModuleName.pyc"),
-              script: workerPayload,
-              environmentVariables: environmentVariables,
-            );
-            return FutureBuilder(
-              future: Future.delayed(const Duration(seconds: 1)).then((_) => exit(0)),
-              builder: (context, _) => const BlankScreen(),
-            );
+            String rawPayload = _args[cIndex + 1];
+
+            if (rawPayload.contains("spawn_main") ||
+                rawPayload.contains("resource_tracker") ||
+                rawPayload.contains("multiprocessing")) {
+
+              if (Platform.environment.containsKey("FLET_IS_WORKER")) {
+                writeLog("-> Worker: Führe Payload direkt aus");
+                SeriousPython.runProgram(
+                  path.join(appDir, "$pythonModuleName.pyc"),
+                  script: rawPayload,
+                  environmentVariables: {
+                    ...environmentVariables,
+                    "FLET_HIDE_WINDOW_ON_START": "true",
+                  },
+                );
+                exit(0);
+              } else {
+                writeLog("-> Hauptprozess: Starte Worker mit Flag");
+                Process.start(
+                  Platform.resolvedExecutable,
+                  _args,
+                  environment: {
+                    ...environmentVariables,
+                    "FLET_IS_WORKER": "1",
+                    "FLET_HIDE_WINDOW_ON_START": "true",
+                  },
+                );
+                exit(0);
+              }
+            }
           }
           // OK - start Python program
           return kIsWeb || (isDesktopPlatform() && _args.isNotEmpty)
