@@ -1,6 +1,5 @@
 // Modified from the original Flet build template
 // - Splash screen closes on window 'show' event
-// - MULTIPROCESSING BYPASS
 
 import 'dart:async';
 import 'dart:io';
@@ -119,29 +118,6 @@ void main(List<String> args) async {
       future: prepareApp(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
-          // MULTIPROCESSING BYPASS
-          int cIndex = _args.indexOf("-c");
-          if (cIndex != -1 && cIndex < _args.length - 1) {
-            String rawPayload = _args[cIndex + 1];
-            if (rawPayload.contains("spawn_main") ||
-                rawPayload.contains("resource_tracker") ||
-                rawPayload.contains("multiprocessing")) {
-              return FutureBuilder(
-                future: SeriousPython.runProgram(
-                  path.join(appDir, "$pythonModuleName.pyc"),
-                  script: rawPayload,
-                  environmentVariables: {
-                    ...environmentVariables,
-                    "FLET_HIDE_WINDOW_ON_START": "true",
-                  },
-                  sync: true,
-                ).then((_) => exit(0)),
-                builder: (context, snap) => const MaterialApp(
-                  home: Scaffold(body: SizedBox.shrink()),
-                ),
-              );
-            }
-          }
 
           // OK - start Python program
           return kIsWeb || (isDesktopPlatform() && _args.isNotEmpty)
