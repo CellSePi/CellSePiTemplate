@@ -10,5 +10,5 @@ This version has been modified to add native splash screen support for Windows,
 Linux, and macOS via the [native_splash_screen](https://pub.dev/packages/native_splash_screen) 
 package. Modified files are marked accordingly.
 
-Original copyright notice and license terms are preserved in [LICENSE](LICENSE) 
-as required by the Apache License 2.0.
+
+This modified project is distributed under the **Apache-2.0 license**. See the [LICENSE](LICENSE) and [NOTICE](NOTICE) files for more details and original attribution.
